@@ -1,0 +1,121 @@
+
+/* TASK PILOT — MIDNIGHT PLUM NAVBAR */
+
+.navbar {
+    width: 100%;
+    min-height: 76px;
+    padding: 12px 5%;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 20px;
+    background: rgba(33, 21, 45, 0.96);
+    border-bottom: 1px solid rgba(193, 139, 145, 0.3);
+    box-shadow: 0 5px 22px rgba(0, 0, 0, 0.2);
+    box-sizing: border-box;
+    position: sticky;
+    top: 0;
+    z-index: 100;
+}
+
+/* Brand */
+
+.navbar-brand {
+    display: flex;
+    align-items: center;
+    gap: 11px;
+    color: #D9A4AD;
+    text-decoration: none;
+}
+
+.navbar-brand h2 {
+    margin: 0;
+    font-size: 23px;
+    font-weight: 800;
+    letter-spacing: -0.8px;
+    color: #FFF5F1;
+}
+
+.navbar-brand svg {
+    color: #D9A4AD;
+    width: 27px;
+    height: 27px;
+}
+
+/* User profile */
+
+.navbar-user {
+    display: flex;
+    align-items: center;
+    gap: 20px;
+}
+
+.navbar-profile {
+    display: flex;
+    align-items: center;
+    gap: 9px;
+    color: #E5D5DF;
+    font-size: 13px;
+    font-weight: 550;
+}
+
+.navbar-profile svg {
+    color: #D9A4AD;
+    width: 19px;
+    height: 19px;
+}
+
+/* Logout */
+
+.logout-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    padding: 10px 17px;
+    border: 1px solid #C18B91;
+    border-radius: 11px;
+    background: linear-gradient(135deg, #A9697D, #75465F);
+    color: #FFFFFF;
+    font-size: 13px;
+    font-weight: 650;
+    cursor: pointer;
+    transition: all 0.25s ease;
+}
+
+.logout-btn:hover {
+    background: linear-gradient(135deg, #C18B91, #92566E);
+    transform: translateY(-2px);
+    box-shadow: 0 6px 18px rgba(193, 139, 145, 0.2);
+}
+
+.logout-btn:active {
+    transform: translateY(0);
+}
+
+/* Mobile */
+
+@media (max-width: 600px) {
+    .navbar {
+        min-height: 66px;
+        padding: 11px 4%;
+        gap: 10px;
+    }
+
+    .navbar-brand h2 {
+        font-size: 19px;
+    }
+
+    .navbar-user {
+        gap: 10px;
+    }
+
+    .navbar-profile span {
+        display: none;
+    }
+
+    .logout-btn {
+        padding: 9px 12px;
+        font-size: 12px;
+    }
+}
