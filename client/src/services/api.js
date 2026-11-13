@@ -1,6 +1,6 @@
 import axios from "axios";
 const API = axios.create({
-    baseURL: "http://localhost:5003/api",
+    baseURL: "https://taskpilot-mern-0wcc.onrender.com/api",
     headers: {
         "Content-Type": "application/json"
     }

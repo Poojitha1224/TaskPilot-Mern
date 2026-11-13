@@ -77,7 +77,7 @@ const Dashboard = () => {
     // SOCKET.IO REAL-TIME NOTIFICATIONS
     useEffect(() => {
         if (!user?._id) return;
-        const socket = io("http://localhost:5003");
+        const socket = io("https://taskpilot-mern-0wcc.onrender.com/");
         socket.on("connect", () => {
             console.log("Socket connected:", socket.id);
             console.log("Joining user room:", user._id);
