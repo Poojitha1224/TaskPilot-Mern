@@ -1,6 +1,6 @@
 
 const mongoose = require("mongoose");
-const Board = require("../models/Board");
+const Board = require("../models/board");
 const BoardMember = require("../models/BoardMember");
 
 // GET ALL BOARD MEMBERS

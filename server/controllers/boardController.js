@@ -1,5 +1,5 @@
 
-const Board = require("../models/Board");
+const Board = require("../models/board");
 const BoardMember = require("../models/BoardMember");
 const Task = require("../models/Task");
 const BoardInvitation = require("../models/BoardInvitation");

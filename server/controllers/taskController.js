@@ -1,6 +1,6 @@
 const { createNotification } = require("./notificationController");
 const Task = require("../models/Task");
-const Board = require("../models/Board");
+const Board = require("../models/board");
 const BoardMember = require("../models/BoardMember");
 const Notification = require("../models/Notification");
 

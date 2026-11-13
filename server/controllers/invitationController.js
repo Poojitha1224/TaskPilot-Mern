@@ -1,6 +1,6 @@
 
 const mongoose = require("mongoose");
-const Board = require("../models/Board");
+const Board = require("../models/board");
 const User = require("../models/User");
 const BoardMember = require("../models/BoardMember");
 const BoardInvitation = require("../models/BoardInvitation");
