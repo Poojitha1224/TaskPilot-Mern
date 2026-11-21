@@ -6,11 +6,13 @@ require("dotenv").config();
 const connectDB = require("./config/db");
 const authRoutes = require("./routes/authRoutes");
 const userRoutes = require("./routes/userRoutes");
+const chatbotRoutes = require("./routes/chatbotRoutes");
 const boardRoutes = require("./routes/boardRoutes");
 const taskRoutes = require("./routes/taskRoutes");
 const boardMemberRoutes = require("./routes/boardMemberRoutes");
 const invitationRoutes = require("./routes/invitationRoutes");
 const notificationRoutes = require("./routes/notificationRoutes");
+const meetingRoutes = require("./routes/meetingRoutes");
 
 const app = express();
 const server = http.createServer(app);
@@ -29,11 +31,13 @@ app.use(express.json());
 
 app.use("/api/auth", authRoutes);
 app.use("/api/user", userRoutes);
+app.use("/api/chatbot", chatbotRoutes);
 app.use("/api/boards", boardRoutes);
 app.use("/api/boards", boardMemberRoutes);
 app.use("/api/tasks", taskRoutes);
 app.use("/api", invitationRoutes);
 app.use("/api/notifications", notificationRoutes);
+app.use("/api/meetings", meetingRoutes);
 
 app.get("/", (req, res) => {
     res.status(200).send("Task Pilot MERN Backend is Running!");

@@ -1,8 +1,12 @@
 import { useEffect, useState } from "react";
-import { Plus, CheckCircle, Clock, ListTodo, Users, ArrowLeft, X, Pencil, Trash2, Bell } from "lucide-react";
+import {
+    Plus, CheckCircle, Clock, ListTodo, Users,
+    ArrowLeft, X, Pencil, Trash2, Bell, MessageCircle
+} from "lucide-react";
 import { io } from "socket.io-client";
 import { useAuth } from "../context/AuthContext";
 import API from "../services/api";
+import Chatbot from "../components/Chatbot/Chatbot";
 
 const Dashboard = () => {
     const { user } = useAuth();
@@ -35,7 +39,21 @@ const Dashboard = () => {
     const [notifications, setNotifications] = useState([]);
     const [notificationsLoading, setNotificationsLoading] = useState(false);
     const [showNotifications, setShowNotifications] = useState(false);
+    const [showChatbot, setShowChatbot] = useState(false);
 
+    // MEETINGS
+    const [meetings, setMeetings] = useState([]);
+    const [meetingsLoading, setMeetingsLoading] = useState(false);
+    const [showMeetings, setShowMeetings] = useState(false);
+    const [showMeetingForm, setShowMeetingForm] = useState(false);
+    const [meetingSaving, setMeetingSaving] = useState(false);
+    const [meetingTitle, setMeetingTitle] = useState("");
+    const [meetingDescription, setMeetingDescription] = useState("");
+    const [meetingType, setMeetingType] = useState("team");
+    const [meetingParticipants, setMeetingParticipants] = useState([]);
+    const [meetingStartTime, setMeetingStartTime] = useState("");
+    const [meetingEndTime, setMeetingEndTime] = useState("");
+    const [meetingLink, setMeetingLink] = useState("");
     // FETCH BOARDS AND TASKS
     useEffect(() => {
         let cancelled = false;
@@ -128,6 +146,102 @@ const Dashboard = () => {
             alert(error.response?.data?.msg || "Unable to load board members.");
         } finally {
             setMembersLoading(false);
+        }
+    };
+    // FETCH MEETINGS FOR THE SELECTED BOARD
+    const fetchMeetings = async () => {
+        if (!selectedBoard) return;
+
+        setMeetingsLoading(true);
+        try {
+            const response = await API.get(`/meetings/${selectedBoard._id}`);
+            setMeetings(response.data.meetings || []);
+            setShowMeetings(true);
+        } catch (error) {
+            alert(error.response?.data?.msg || "Unable to load meetings.");
+        } finally {
+            setMeetingsLoading(false);
+        }
+    };
+
+    const openMeetingForm = async () => {
+        if (!selectedBoard) return;
+
+        try {
+            const response = await API.get(`/boards/${selectedBoard._id}/members`);
+            setMembers(response.data.members || []);
+            setMeetingTitle("");
+            setMeetingDescription("");
+            setMeetingType("team");
+            setMeetingParticipants([]);
+            setMeetingStartTime("");
+            setMeetingEndTime("");
+            setMeetingLink("");
+            setShowMeetingForm(true);
+        } catch (error) {
+            alert(error.response?.data?.msg || "Unable to load board members.");
+        }
+    };
+
+    const toggleMeetingParticipant = (participantId) => {
+        setMeetingParticipants((previous) =>
+            previous.includes(participantId)
+                ? previous.filter((id) => id !== participantId)
+                : [...previous, participantId]
+        );
+    };
+
+    const createMeeting = async (e) => {
+        e.preventDefault();
+
+        if (!selectedBoard) return;
+        if (!meetingTitle.trim()) {
+            return alert("Please enter a meeting title.");
+        }
+        if (!meetingStartTime || !meetingEndTime) {
+            return alert("Please select the meeting start and end time.");
+        }
+
+        const start = new Date(meetingStartTime);
+        const end = new Date(meetingEndTime);
+
+        if (Number.isNaN(start.getTime()) || Number.isNaN(end.getTime()) ||
+            start <= new Date() || end <= start) {
+            return alert("Choose a future start time and an end time after the start time.");
+        }
+
+        if (!meetingLink.trim()) {
+            return alert("Please enter a meeting link.");
+        }
+
+        if (meetingType === "private" && meetingParticipants.length === 0) {
+            return alert("Select at least one participant for a private meeting.");
+        }
+
+        setMeetingSaving(true);
+        try {
+            const payload = {
+                boardId: selectedBoard._id,
+                title: meetingTitle.trim(),
+                description: meetingDescription.trim(),
+                meetingType,
+                startTime: start.toISOString(),
+                endTime: end.toISOString(),
+                meetingLink: meetingLink.trim()
+            };
+
+            if (meetingType === "private") {
+                payload.participants = meetingParticipants;
+            }
+
+            const response = await API.post("/meetings", payload);
+            alert(response.data.msg || "Meeting scheduled successfully!");
+            setShowMeetingForm(false);
+            await fetchMeetings();
+        } catch (error) {
+            alert(error.response?.data?.msg || "Unable to schedule meeting.");
+        } finally {
+            setMeetingSaving(false);
         }
     };
 
@@ -604,6 +718,12 @@ const Dashboard = () => {
                                 <button className="primary-btn" onClick={fetchMembers}>
                                     <Users size={18} /> Members
                                 </button>
+                                <button className="primary-btn" onClick={fetchMeetings}>
+                                    <Clock size={18} /> Meetings
+                                </button>
+                                <button className="primary-btn" onClick={openMeetingForm}>
+                                    <Plus size={18} /> Schedule Meeting
+                                </button>
                                 <button className="primary-btn" type="button"
                                     onClick={() => setShowInviteForm(!showInviteForm)}>
                                     <Plus size={18} /> Invite Member
@@ -673,6 +793,138 @@ const Dashboard = () => {
                                             )}
                                         </div>
                                     ))
+                                )}
+                            </div>
+                        )}
+
+                        {showMeetingForm && (
+                            <form className="auth-card" onSubmit={createMeeting}>
+                                <div className="dashboard-header">
+                                    <h2>Schedule a Meeting</h2>
+                                    <button type="button" onClick={() => setShowMeetingForm(false)}>
+                                        <X size={20} />
+                                    </button>
+                                </div>
+
+                                <label>Meeting Title</label>
+                                <input
+                                    type="text"
+                                    value={meetingTitle}
+                                    onChange={(e) => setMeetingTitle(e.target.value)}
+                                    placeholder="Enter meeting title"
+                                    required
+                                />
+
+                                <label>Description</label>
+                                <textarea
+                                    value={meetingDescription}
+                                    onChange={(e) => setMeetingDescription(e.target.value)}
+                                    placeholder="What will this meeting cover?"
+                                />
+
+                                <label>Meeting Type</label>
+                                <select
+                                    value={meetingType}
+                                    onChange={(e) => setMeetingType(e.target.value)}
+                                >
+                                    <option value="team">Team meeting (all board members)</option>
+                                    <option value="private">Private meeting (selected members)</option>
+                                </select>
+
+                                {meetingType === "private" && (
+                                    <div>
+                                        <label>Select Participants</label>
+                                        {members.length === 0 ? (
+                                            <p className="muted-text">No board members found.</p>
+                                        ) : (
+                                            members
+                                                .filter((member) => {
+                                                    const memberUserId = member.userId?._id || member.userId;
+                                                    return memberUserId &&
+                                                        String(memberUserId) !== String(user?._id);
+                                                })
+                                                .map((member) => {
+                                                    const memberUserId = member.userId?._id || member.userId;
+                                                    return (
+                                                        <label key={member._id} style={{ display: "block", margin: "8px 0" }}>
+                                                            <input
+                                                                type="checkbox"
+                                                                checked={meetingParticipants.includes(String(memberUserId))}
+                                                                onChange={() => toggleMeetingParticipant(String(memberUserId))}
+                                                            />
+                                                            {" "}{member.userId?.email || "Board member"}
+                                                        </label>
+                                                    );
+                                                })
+                                        )}
+                                    </div>
+                                )}
+
+                                <label>Start Date and Time</label>
+                                <input
+                                    type="datetime-local"
+                                    value={meetingStartTime}
+                                    onChange={(e) => setMeetingStartTime(e.target.value)}
+                                    required
+                                />
+
+                                <label>End Date and Time</label>
+                                <input
+                                    type="datetime-local"
+                                    value={meetingEndTime}
+                                    onChange={(e) => setMeetingEndTime(e.target.value)}
+                                    required
+                                />
+
+                                <label>Meeting Link</label>
+                                <input
+                                    type="url"
+                                    value={meetingLink}
+                                    onChange={(e) => setMeetingLink(e.target.value)}
+                                    placeholder="https://meet.google.com/..."
+                                    required
+                                />
+
+                                <button className="primary-btn" type="submit" disabled={meetingSaving}>
+                                    {meetingSaving ? "Scheduling..." : "Schedule Meeting"}
+                                </button>
+                            </form>
+                        )}
+
+                        {showMeetings && (
+                            <div className="auth-card">
+                                <div className="dashboard-header">
+                                    <h2>Meetings ({meetings.length})</h2>
+                                    <button type="button" onClick={() => setShowMeetings(false)}>
+                                        <X size={20} />
+                                    </button>
+                                </div>
+
+                                {meetingsLoading ? (
+                                    <p>Loading meetings...</p>
+                                ) : meetings.length === 0 ? (
+                                    <p className="muted-text">No meetings scheduled for this board.</p>
+                                ) : (
+                                    <div className="boards-grid">
+                                        {meetings.map((meeting) => (
+                                            <div className="board-card" key={meeting._id}>
+                                                <h3>{meeting.title}</h3>
+                                                <p>{meeting.description || "No description available"}</p>
+                                                <p>Type: {meeting.meetingType}</p>
+                                                <p>Starts: {new Date(meeting.startTime).toLocaleString()}</p>
+                                                <p>Ends: {new Date(meeting.endTime).toLocaleString()}</p>
+                                                <p>Status: {meeting.status}</p>
+                                                <a
+                                                    href={meeting.meetingLink}
+                                                    target="_blank"
+                                                    rel="noopener noreferrer"
+                                                    className="primary-btn"
+                                                >
+                                                    Join Meeting
+                                                </a>
+                                            </div>
+                                        ))}
+                                    </div>
                                 )}
                             </div>
                         )}
@@ -782,6 +1034,22 @@ const Dashboard = () => {
                     </>
                 )}
             </section>
+                    {/* TASKPILOT AI CHATBOT */}
+
+            <button
+                className="chatbot-floating-button"
+                onClick={() => setShowChatbot(!showChatbot)}
+                title="Chat with TaskPilot AI"
+            >
+                {showChatbot ? <X size={25} /> : <MessageCircle size={25} />}
+            </button>
+
+            {showChatbot && (
+                <div className="chatbot-floating-window">
+                    <Chatbot />
+                </div>
+            )}
+
         </div>
     );
 };
