@@ -1,6 +1,6 @@
 
 const Meeting = require("../models/Meeting");
-const Board = require("../models/Board");
+const Board = require("../models/board");
 const BoardMember = require("../models/BoardMember");
 const { createNotification } = require("./notificationController");
 
