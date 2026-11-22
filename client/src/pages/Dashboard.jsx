@@ -742,6 +742,13 @@ const connectGoogleCalendar = async () => {
                                 <button className="primary-btn" onClick={fetchMeetings}>
                                     <Clock size={18} /> Meetings
                                 </button>
+                                <button
+    className="primary-btn"
+    type="button"
+    onClick={connectGoogleCalendar}
+>
+    Connect Google Calendar
+</button>
                                 <button className="primary-btn" onClick={openMeetingForm}>
                                     <Plus size={18} /> Schedule Meeting
                                 </button>
