@@ -163,6 +163,27 @@ const Dashboard = () => {
             setMeetingsLoading(false);
         }
     };
+    // CONNECT GOOGLE CALENDAR
+const connectGoogleCalendar = async () => {
+    try {
+        const response = await API.get("/meetings/google/auth");
+
+        const authUrl = response.data.authUrl;
+
+        if (!authUrl) {
+            return alert("Unable to generate Google authorization URL.");
+        }
+
+        window.location.href = authUrl;
+
+    } catch (error) {
+        console.error("Google Connection Error:", error);
+        alert(
+            error.response?.data?.msg ||
+            "Unable to connect Google Calendar."
+        );
+    }
+};
 
     const openMeetingForm = async () => {
         if (!selectedBoard) return;

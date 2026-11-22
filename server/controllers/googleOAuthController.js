@@ -3,6 +3,11 @@ const { google } = require("googleapis");
 const jwt = require("jsonwebtoken");
 const GoogleAuth = require("../models/GoogleAuth");
 
+const {
+    encryptToken,
+    decryptToken
+} = require("../utils/googleTokenCrypto");
+
 const createOAuthClient = () => {
     return new google.auth.OAuth2(
         process.env.GOOGLE_CLIENT_ID,
@@ -32,11 +37,13 @@ exports.googleAuth = async (req, res) => {
             state
         });
 
-        return res.redirect(authUrl);
+        return res.status(200).json({ authUrl });
 
     } catch (error) {
         console.error("Google Auth Error:", error);
-        return res.status(500).send("Unable to start Google authorization");
+        return res.status(500).send(
+            "Unable to start Google authorization"
+        );
     }
 };
 
@@ -46,14 +53,22 @@ exports.googleCallback = async (req, res) => {
         const { code, state, error } = req.query;
 
         if (error) {
-            return res.status(400).send("Google authorization was denied");
+            return res.status(400).send(
+                "Google authorization was denied"
+            );
         }
 
         if (!code || !state) {
-            return res.status(400).send("Missing authorization details");
+            return res.status(400).send(
+                "Missing authorization details"
+            );
         }
 
-        const decoded = jwt.verify(state, process.env.JWT_SECRET);
+        const decoded = jwt.verify(
+            state,
+            process.env.JWT_SECRET
+        );
+
         const oauth2Client = createOAuthClient();
 
         const { tokens } = await oauth2Client.getToken(code);
@@ -72,11 +87,14 @@ exports.googleCallback = async (req, res) => {
         });
 
         const refreshToken =
-            tokens.refresh_token || existingAuth?.refreshToken;
+            tokens.refresh_token ||
+            (existingAuth
+                ? decryptToken(existingAuth.refreshToken)
+                : null);
 
         if (!refreshToken) {
             return res.status(400).send(
-                "Google did not provide a refresh token. Please reconnect with consent."
+                "Google did not provide a refresh token. Please reconnect."
             );
         }
 
@@ -85,9 +103,13 @@ exports.googleCallback = async (req, res) => {
             {
                 userId: decoded.userId,
                 googleEmail: data.email,
-                refreshToken
+                refreshToken: encryptToken(refreshToken)
             },
-            { upsert: true, new: true, runValidators: true }
+            {
+                upsert: true,
+                new: true,
+                runValidators: true
+            }
         );
 
         return res.send(
