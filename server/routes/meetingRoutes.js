@@ -9,10 +9,17 @@ const {
     getMeetings
 } = require("../controllers/meetingController");
 
-// Create a meeting
-router.post("/", authMiddleware, createMeeting);
+const {
+    googleAuth,
+    googleCallback
+} = require("../controllers/googleOAuthController");
 
-// Get meetings for a board
+// Google OAuth routes
+router.get("/google/auth", authMiddleware, googleAuth);
+router.get("/google/callback", googleCallback);
+
+// Meeting routes
+router.post("/", authMiddleware, createMeeting);
 router.get("/:boardId", authMiddleware, getMeetings);
 
 module.exports = router;
