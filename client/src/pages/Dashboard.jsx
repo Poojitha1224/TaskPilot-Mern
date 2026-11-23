@@ -54,6 +54,7 @@ const Dashboard = () => {
     const [meetingStartTime, setMeetingStartTime] = useState("");
     const [meetingEndTime, setMeetingEndTime] = useState("");
     const [meetingLink, setMeetingLink] = useState("");
+    const [meetingLinkProvider, setMeetingLinkProvider] = useState("manual");
     // FETCH BOARDS AND TASKS
     useEffect(() => {
         let cancelled = false;
@@ -198,6 +199,7 @@ const connectGoogleCalendar = async () => {
             setMeetingStartTime("");
             setMeetingEndTime("");
             setMeetingLink("");
+            setMeetingLinkProvider("manual");
             setShowMeetingForm(true);
         } catch (error) {
             alert(error.response?.data?.msg || "Unable to load board members.");
@@ -231,7 +233,7 @@ const connectGoogleCalendar = async () => {
             return alert("Choose a future start time and an end time after the start time.");
         }
 
-        if (!meetingLink.trim()) {
+        if (meetingLinkProvider === "manual" && !meetingLink.trim()) {
             return alert("Please enter a meeting link.");
         }
 
@@ -248,7 +250,8 @@ const connectGoogleCalendar = async () => {
                 meetingType,
                 startTime: start.toISOString(),
                 endTime: end.toISOString(),
-                meetingLink: meetingLink.trim()
+                linkProvider: meetingLinkProvider,
+                meetingLink: meetingLinkProvider === "manual" ? meetingLink.trim() : ""
             };
 
             if (meetingType === "private") {
@@ -904,14 +907,31 @@ const connectGoogleCalendar = async () => {
                                     required
                                 />
 
-                                <label>Meeting Link</label>
-                                <input
-                                    type="url"
-                                    value={meetingLink}
-                                    onChange={(e) => setMeetingLink(e.target.value)}
-                                    placeholder="https://meet.google.com/..."
-                                    required
-                                />
+                                <label>Meeting Link Option</label>
+                                <select
+                                    value={meetingLinkProvider}
+                                    onChange={(e) => setMeetingLinkProvider(e.target.value)}
+                                >
+                                    <option value="manual">Manual Link</option>
+                                    <option value="google-meet">Google Meet (Automatic)</option>
+                                </select>
+
+                                {meetingLinkProvider === "google-meet" ? (
+                                    <p className="muted-text">
+                                        TaskPilot will generate a Google Meet link using your connected Google Calendar account.
+                                    </p>
+                                ) : (
+                                    <>
+                                        <label>Meeting Link</label>
+                                        <input
+                                            type="url"
+                                            value={meetingLink}
+                                            onChange={(e) => setMeetingLink(e.target.value)}
+                                            placeholder="https://meet.google.com/... or https://zoom.us/..."
+                                            required
+                                        />
+                                    </>
+                                )}
 
                                 <button className="primary-btn" type="submit" disabled={meetingSaving}>
                                     {meetingSaving ? "Scheduling..." : "Schedule Meeting"}

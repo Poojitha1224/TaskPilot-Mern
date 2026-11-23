@@ -51,6 +51,10 @@ const meetingSchema = new mongoose.Schema(
             type: String,
             default: ""
         },
+        googleCalendarEventId: {
+    type: String,
+    default: null
+},
 
         linkProvider: {
             type: String,
